@@ -104,6 +104,7 @@ if [ ! -f "$HOME/.claude/obsidian-brain-path" ]; then
 {
   "permissions": {
     "allow": [
+      "Read($OBSIDIAN_VAULT/Claude Brain/**)",
       "Write($OBSIDIAN_VAULT/Claude Brain/**)",
       "Edit($OBSIDIAN_VAULT/Claude Brain/**)"
     ]
