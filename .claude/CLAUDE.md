@@ -1,11 +1,3 @@
-## IMPORTANT: Sound Notification
-
-After finishing responding to my request or running a command, run this command to notify me by sound:
-
-```bash
-afplay /System/Library/Sounds/Funk.aiff
-```
-
 ## Obsidian Brain - Persistent Mind Map Memory
 
 You have a persistent brain stored as interconnected notes in an Obsidian vault. Use it to remember knowledge across sessions and build a connected mind map of everything you learn.
