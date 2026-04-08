@@ -57,6 +57,68 @@ if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
   git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 fi
 
+# Claude Code
+link .claude/CLAUDE.md
+link .claude/settings.json
+
+# Claude Code — detect Obsidian vault and configure brain path
+if [ ! -f "$HOME/.claude/obsidian-brain-path" ]; then
+  OBSIDIAN_VAULT=""
+
+  # macOS iCloud Obsidian
+  if [[ "$(uname)" == "Darwin" ]]; then
+    ICLOUD_OBSIDIAN="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents"
+    if [ -d "$ICLOUD_OBSIDIAN" ]; then
+      # Find first vault (directory containing .obsidian/)
+      OBSIDIAN_VAULT=$(find "$ICLOUD_OBSIDIAN" -maxdepth 2 -name ".obsidian" -type d 2>/dev/null | head -1 | xargs dirname 2>/dev/null)
+    fi
+  fi
+
+  # Fallback: common Linux/generic locations
+  if [ -z "$OBSIDIAN_VAULT" ]; then
+    for dir in "$HOME/Documents" "$HOME/Obsidian" "$HOME"; do
+      if [ -d "$dir" ]; then
+        OBSIDIAN_VAULT=$(find "$dir" -maxdepth 3 -name ".obsidian" -type d 2>/dev/null | head -1 | xargs dirname 2>/dev/null)
+        [ -n "$OBSIDIAN_VAULT" ] && break
+      fi
+    done
+  fi
+
+  if [ -n "$OBSIDIAN_VAULT" ]; then
+    echo "$OBSIDIAN_VAULT" > "$HOME/.claude/obsidian-brain-path"
+    echo "Detected Obsidian vault: $OBSIDIAN_VAULT"
+
+    # Create Claude Brain folder structure if missing
+    BRAIN="$OBSIDIAN_VAULT/Claude Brain"
+    if [ ! -d "$BRAIN" ]; then
+      mkdir -p "$BRAIN/Projects/Work" "$BRAIN/Projects/Hobby" \
+               "$BRAIN/Learnings" "$BRAIN/Decisions" \
+               "$BRAIN/Sessions" "$BRAIN/Preferences"
+      echo "Created Claude Brain folder structure in vault"
+    fi
+
+    # Create/update settings.local.json with brain write permissions
+    LOCAL_SETTINGS="$HOME/.claude/settings.local.json"
+    if [ ! -f "$LOCAL_SETTINGS" ]; then
+      cat > "$LOCAL_SETTINGS" << EOJSON
+{
+  "permissions": {
+    "allow": [
+      "Write($OBSIDIAN_VAULT/Claude Brain/**)",
+      "Edit($OBSIDIAN_VAULT/Claude Brain/**)"
+    ]
+  }
+}
+EOJSON
+      echo "Created settings.local.json with brain permissions"
+    else
+      echo "Note: settings.local.json already exists — you may need to manually add brain write permissions"
+    fi
+  else
+    echo "Warning: No Obsidian vault found. Claude Brain will auto-detect on first session."
+  fi
+fi
+
 # Install Nerd Font (macOS only)
 if [[ "$(uname)" == "Darwin" ]] && ! ls ~/Library/Fonts/MesloLG* &>/dev/null; then
   echo "Installing MesloLG Nerd Font..."
