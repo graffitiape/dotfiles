@@ -60,6 +60,7 @@ fi
 # Claude Code
 link .claude/CLAUDE.md
 link .claude/settings.json
+link .claude/hooks
 
 # Claude Code — detect Obsidian vault and configure brain path
 if [ ! -f "$HOME/.claude/obsidian-brain-path" ]; then
