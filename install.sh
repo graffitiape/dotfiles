@@ -20,6 +20,25 @@ link() {
   echo "Linked $dst -> $src"
 }
 
+ensure_toml_top_level_key() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+
+  if grep -q "^$key *= *" "$file"; then
+    return
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+  awk -v line="$key = $value" '
+    !inserted && /^\[/ { print line; inserted=1 }
+    { print }
+    END { if (!inserted) print line }
+  ' "$file" > "$tmp"
+  mv "$tmp" "$file"
+}
+
 # Shell
 link .zshrc
 link .p10k.zsh
@@ -92,7 +111,7 @@ if [ ! -f "$HOME/.claude/obsidian-brain-path" ]; then
     # Create Claude Brain folder structure if missing
     BRAIN="$OBSIDIAN_VAULT/Claude Brain"
     if [ ! -d "$BRAIN" ]; then
-      mkdir -p "$BRAIN/Projects/Work" "$BRAIN/Projects/Hobby" \
+      mkdir -p "$BRAIN/Projects/Work" "$BRAIN/Projects/Hobby" "$BRAIN/Projects/Side-Projects" \
                "$BRAIN/Learnings" "$BRAIN/Decisions" \
                "$BRAIN/Sessions" "$BRAIN/Preferences"
       echo "Created Claude Brain folder structure in vault"
@@ -119,6 +138,86 @@ EOJSON
   else
     echo "Warning: No Obsidian vault found. Claude Brain will auto-detect on first session."
   fi
+fi
+
+# Codex
+link .codex/AGENTS.md
+link .codex/hooks.json
+link .codex/hooks/obsidian_session_start.sh
+link .codex/hooks/obsidian_stop.sh
+
+# Codex — detect Obsidian vault and configure brain path/hooks
+mkdir -p "$HOME/.codex"
+CODEX_OBSIDIAN_VAULT=""
+
+if [ -f "$HOME/.codex/obsidian-brain-path" ]; then
+  CODEX_OBSIDIAN_VAULT="$(cat "$HOME/.codex/obsidian-brain-path")"
+elif [ -f "$HOME/.claude/obsidian-brain-path" ]; then
+  CODEX_OBSIDIAN_VAULT="$(cat "$HOME/.claude/obsidian-brain-path")"
+fi
+
+if [ -z "$CODEX_OBSIDIAN_VAULT" ] || [ ! -d "$CODEX_OBSIDIAN_VAULT" ]; then
+  CODEX_OBSIDIAN_VAULT=""
+
+  # macOS iCloud Obsidian
+  if [[ "$(uname)" == "Darwin" ]]; then
+    ICLOUD_OBSIDIAN="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents"
+    if [ -d "$ICLOUD_OBSIDIAN" ]; then
+      CODEX_OBSIDIAN_VAULT=$(find "$ICLOUD_OBSIDIAN" -maxdepth 2 -name ".obsidian" -type d 2>/dev/null | head -1 | xargs dirname 2>/dev/null)
+    fi
+  fi
+
+  # Fallback: common Linux/generic locations
+  if [ -z "$CODEX_OBSIDIAN_VAULT" ]; then
+    for dir in "$HOME/Documents" "$HOME/Obsidian" "$HOME"; do
+      if [ -d "$dir" ]; then
+        CODEX_OBSIDIAN_VAULT=$(find "$dir" -maxdepth 3 -name ".obsidian" -type d 2>/dev/null | head -1 | xargs dirname 2>/dev/null)
+        [ -n "$CODEX_OBSIDIAN_VAULT" ] && break
+      fi
+    done
+  fi
+fi
+
+if [ -n "$CODEX_OBSIDIAN_VAULT" ]; then
+  echo "$CODEX_OBSIDIAN_VAULT" > "$HOME/.codex/obsidian-brain-path"
+  echo "Configured Codex Obsidian brain path: $CODEX_OBSIDIAN_VAULT"
+
+  CODEX_BRAIN="$CODEX_OBSIDIAN_VAULT/Claude Brain"
+  mkdir -p "$CODEX_BRAIN/Projects/Work" "$CODEX_BRAIN/Projects/Hobby" "$CODEX_BRAIN/Projects/Side-Projects" \
+           "$CODEX_BRAIN/Learnings" "$CODEX_BRAIN/Decisions" \
+           "$CODEX_BRAIN/Sessions" "$CODEX_BRAIN/Preferences"
+
+  CODEX_CONFIG="$HOME/.codex/config.toml"
+  touch "$CODEX_CONFIG"
+  ensure_toml_top_level_key "$CODEX_CONFIG" "commit_attribution" '""'
+
+  if command -v codex >/dev/null 2>&1; then
+    codex features enable codex_hooks >/dev/null 2>&1 || echo "Note: could not enable Codex hooks automatically"
+  elif ! grep -q "^codex_hooks *= *true" "$CODEX_CONFIG"; then
+    if grep -q "^\[features\]" "$CODEX_CONFIG"; then
+      echo "Note: add 'codex_hooks = true' under [features] in $CODEX_CONFIG"
+    else
+      cat >> "$CODEX_CONFIG" << EOTOML
+
+[features]
+codex_hooks = true
+EOTOML
+    fi
+  fi
+
+  if ! grep -Fq "$CODEX_BRAIN" "$CODEX_CONFIG"; then
+    if grep -q "^\[sandbox_workspace_write\]" "$CODEX_CONFIG"; then
+      echo "Note: add '$CODEX_BRAIN' to sandbox_workspace_write.writable_roots in $CODEX_CONFIG"
+    else
+      cat >> "$CODEX_CONFIG" << EOTOML
+
+[sandbox_workspace_write]
+writable_roots = ["$CODEX_BRAIN"]
+EOTOML
+    fi
+  fi
+else
+  echo "Warning: No Obsidian vault found. Codex Brain will auto-detect using AGENTS.md fallback instructions."
 fi
 
 # Install Nerd Font (macOS only)

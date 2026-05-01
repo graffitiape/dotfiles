@@ -9,6 +9,7 @@ My personal configs for zsh, neovim, tmux, and ghostty.
 - **Tmux** — Dracula theme with custom orange accent, vim-style pane navigation
 - **Ghostty** — Catppuccin Macchiato theme, semi-transparent background
 - **Claude Code** — Global instructions, plugins, and Obsidian Brain mind map (auto-detects vault per machine)
+- **Codex** — Global AGENTS.md instructions, lifecycle hooks, and shared Obsidian Brain setup
 
 ## Setup
 
@@ -24,6 +25,7 @@ The install script will:
 - Install Oh My Zsh, Powerlevel10k, zsh-syntax-highlighting, and zsh-autosuggestions if missing
 - Install MesloLG Nerd Font on macOS via Homebrew
 - Detect Obsidian vault and configure Claude Code brain path + permissions
+- Detect Obsidian vault and configure Codex brain path, hooks, and writable root
 
 After running, set your terminal font to **MesloLGM Nerd Font** and restart your shell.
 
