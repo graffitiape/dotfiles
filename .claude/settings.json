@@ -1,5 +1,8 @@
 {
   "includeCoAuthoredBy": false,
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -34,13 +37,18 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"/Users/vasjondone/.claude/plugins/cache/caveman/caveman/12e78c520167/hooks/caveman-statusline.sh\""
+  },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "feature-dev@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
-    "caveman@caveman": true
+    "caveman@caveman": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "caveman": {
@@ -52,5 +60,7 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
-  "voiceEnabled": true
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true,
+  "agentPushNotifEnabled": true
 }
