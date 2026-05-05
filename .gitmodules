@@ -1,0 +1,12 @@
+[submodule ".config/nvim"]
+	path = .config/nvim
+	url = https://github.com/graffitiape/nvim.git
+[submodule ".config/ghostty"]
+	path = .config/ghostty
+	url = https://github.com/graffitiape/ghostty-config.git
+[submodule ".config/tmux"]
+	path = .config/tmux
+	url = https://github.com/graffitiape/tmux.git
+[submodule "brain"]
+	path = brain
+	url = https://github.com/graffitiape/brain.git

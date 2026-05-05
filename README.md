@@ -1,20 +1,19 @@
 # dotfiles
 
-My personal configs for zsh, neovim, tmux, and ghostty.
+My personal shell config plus submodule links to standalone editor, terminal, tmux, and AI brain repos.
 
 ## What's included
 
 - **Zsh** — Oh My Zsh + Powerlevel10k (minimal style, Catppuccin Macchiato colors)
-- **Neovim** — Lazy.nvim plugin manager, LSP, Treesitter, Telescope, Harpoon, and more
-- **Tmux** — Dracula theme with custom orange accent, vim-style pane navigation
-- **Ghostty** — Catppuccin Macchiato theme, semi-transparent background
-- **Claude Code** — Global instructions, plugins, and Obsidian Brain mind map (auto-detects vault per machine)
-- **Codex** — Global AGENTS.md instructions, lifecycle hooks, and shared Obsidian Brain setup
+- **Neovim** — `graffitiape/nvim` submodule
+- **Tmux** — `graffitiape/tmux` submodule
+- **Ghostty** — `graffitiape/ghostty-config` submodule
+- **Brain** — `graffitiape/brain` submodule for Claude Code, Codex, and shared Obsidian Brain setup
 
 ## Setup
 
 ```bash
-git clone https://github.com/graffitiape/dotfiles.git ~/dotfiles
+git clone --recurse-submodules https://github.com/graffitiape/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```
@@ -22,21 +21,34 @@ cd ~/dotfiles
 The install script will:
 - Symlink all configs to their expected locations
 - Back up any existing configs as `.bak`
+- Initialize/update submodules
 - Install Oh My Zsh, Powerlevel10k, zsh-syntax-highlighting, and zsh-autosuggestions if missing
 - Install MesloLG Nerd Font on macOS via Homebrew
-- Detect Obsidian vault and configure Claude Code brain path + permissions
-- Detect Obsidian vault and configure Codex brain path, hooks, and writable root
+- Delegate Claude Code and Codex setup to the `brain` submodule
 
 After running, set your terminal font to **MesloLGM Nerd Font** and restart your shell.
 
 ## Updating
 
-Edit files directly in `~/dotfiles` — they're symlinked, so changes apply immediately. Then push:
+Edit shell files directly in `~/dotfiles`. Edit submodule-owned configs inside their submodule directories, then commit both the submodule repo and the parent pointer:
 
 ```bash
 cd ~/dotfiles
-git add -A && git commit -m "update configs"
+
+cd .config/nvim
+git add -A && git commit -m "chore: update nvim config"
+git push
+
+cd ../..
+git add .config/nvim
+git commit -m "chore: update nvim submodule"
 git push
 ```
 
-On other machines, just `git pull` from `~/dotfiles`.
+On other machines:
+
+```bash
+cd ~/dotfiles
+git pull
+git submodule update --init --recursive
+```
